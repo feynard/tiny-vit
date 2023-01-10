@@ -1,11 +1,12 @@
 This is a simple implementation of ViT model. Example includes training of classifier on `CIFAR-10`. Requirements are as usual:
 - ``pytorch``
 - ``pyyaml``
+
 and relatively fresh ``Python``.
 
 To download and preprocess the data into a given folder run
 ```
-python build_dataset.py data_folder
+python build_dataset.py ./cifar-10
 ```
 
 To train the model run
