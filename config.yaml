@@ -11,7 +11,10 @@ pooling_type: class_token
 # Training
 use_gpu: True
 batch_size: 256
-epochs: 5
+epochs: 1_000
 lr: 0.0001
 weights: vit.pth
 dataset: cifar-10/train.pkl
+train_split: 0.8
+flip_probability: 0.5
+rotation_angle: 60

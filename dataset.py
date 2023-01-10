@@ -31,7 +31,12 @@ class CIFAR(Dataset):
         return self.augmentation(self.x[i]), self.y[i]
 
 
-def create_loaders(file_path: str, batch_size: int, train_split: float = 0.8) -> Tuple[DataLoader, DataLoader]:
+def create_loaders(
+    file_path: str,
+    batch_size: int,
+    train_split: float = 0.8,
+    flip_probability: float = 0.5,
+    rotation_angle: int = 60) -> Tuple[DataLoader, DataLoader]:
     """
     file_path: path to pickled dictionary with keys
         'images': np.array of uint8 values of shape [N, H, W, 3]
@@ -43,7 +48,7 @@ def create_loaders(file_path: str, batch_size: int, train_split: float = 0.8) ->
     Returns train and validation dataloaders
     """
 
-    dataset = CIFAR(file_path)
+    dataset = CIFAR(file_path, flip_probability, rotation_angle)
 
     train_ds, validation_ds = torch.utils.data.random_split(
         dataset,

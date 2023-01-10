@@ -46,7 +46,13 @@ if __name__ == '__main__':
 
     config = read_config(sys.argv[1])
 
-    train_dataloader, validation_dataloader = create_loaders(config.dataset, config.batch_size)
+    train_dataloader, validation_dataloader = create_loaders(
+        config.dataset,
+        config.batch_size,
+        config.train_split,
+        config.flip_probability,
+        config.rotation_angle
+    )
 
     transformer = VisionTransformer(
         image_shape=config.image_shape,

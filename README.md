@@ -1,4 +1,4 @@
-This is an implementation of a simplest ViT model. Example includes training of classifier on `CIFAR-10`. Requirements are as usual:
+This is a simple implementation of ViT model. Example includes training of classifier on `CIFAR-10`. Requirements are as usual:
 - ``pytorch``
 - ``pyyaml``
 and relatively fresh ``Python``.
