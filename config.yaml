@@ -1,0 +1,17 @@
+# Model
+image_shape: [3, 32, 32]
+patch_size: 4
+num_layers: 6
+transformer_dim: 32
+attention_heads: 8
+num_classes: 10
+dropout: 0.02
+pooling_type: class_token
+
+# Training
+use_gpu: True
+batch_size: 256
+epochs: 5
+lr: 0.0001
+weights: vit.pth
+dataset: cifar-10/train.pkl
