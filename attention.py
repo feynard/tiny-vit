@@ -1,49 +1,65 @@
+import math
+
 import torch
 
 
-class Attention(torch.nn.Module):
+class SelfAttention(torch.nn.Module):
     """
     This is a simple implementation of a multi-head self attention layer
     Convention for the input: [Batch, Length, Embedding]
+
+    Notation for `einsum`:
+        b -- batch
+        d -- input dimension
+        n -- number of heads
+        e -- head dimension equal to `d // n`
+        l, m -- length
     """
 
     class DimensionError(Exception):
-        def __init__(self, message):
-            self.message = message
+        pass
 
-    def __init__(self, input_dim: int, num_heads: int):
+    def __init__(self, dim: int, n_heads: int):
         super().__init__()
 
-        if input_dim % num_heads != 0:
-            raise Attention.DimensionError("Dimension must be divisible by the number of attention heads!")
+        if dim % n_heads != 0:
+            raise SelfAttention.DimensionError("Dimension must be divisible by the number of attention heads!")
 
-        self.input_dim = input_dim
-        self.num_heads = num_heads
+        self.head_dim = dim // n_heads
 
-        self.k = torch.nn.Parameter(torch.rand(num_heads, input_dim, input_dim))
-        self.q = torch.nn.Parameter(torch.rand(num_heads, input_dim, input_dim))
-        self.v = torch.nn.Parameter(torch.rand(num_heads, input_dim // num_heads, input_dim))
-
-        self.softmax = torch.nn.Softmax(dim=3)
+        self.k = torch.nn.Parameter(torch.rand(n_heads, dim, self.head_dim))
+        self.q = torch.nn.Parameter(torch.rand(n_heads, dim, self.head_dim))
+        self.v = torch.nn.Parameter(torch.rand(n_heads, dim, self.head_dim))
 
     @staticmethod
-    def batch_head_product(x, y):
-        return torch.einsum('bdl, ncd -> bncl', x, y)
-
-    def forward(self, x):
+    def batch_head_product(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
         """
-        Input: tensor of shape [Batch, Length, Embedding]
+        Batch matrix multiplication of the input `x` with the weight `w` for each attention head.
+        Input shape: [Batch, Length, Embedding]
         """
 
-        x = x.permute(0, 2, 1)
+        return torch.einsum('bld, nde -> bnle', x, w)
 
-        k = Attention.batch_head_product(x, self.k)
-        q = Attention.batch_head_product(x, self.q)
-        v = Attention.batch_head_product(x, self.v)
+    @staticmethod
+    def attention_operation(k: torch.Tensor, q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+        """
+        Vanilla Self-Attention operation.
+        Input shapes: [Batch, Heads, Length, Head Dimension]
+        """
 
-        s = self.softmax(torch.einsum('bndl, bndm -> bnlm', q, k))
+        head_dim = k.shape[-1]
+        s = torch.nn.functional.softmax(torch.einsum('bnle, bnme -> bnlm', q, k) / math.sqrt(head_dim), dim=-1)
+        r = torch.einsum('bnlm, bnme -> blne', s, v)
 
-        r = torch.einsum('bnkl, bndl -> bndk', s, v)
-        r = r.reshape(len(x), self.input_dim, -1)
+        return r.flatten(2, 3)
 
-        return r.permute(0, 2, 1)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Input shape: [Batch, Length, Embedding]
+        """
+
+        k = SelfAttention.batch_head_product(x, self.k)
+        q = SelfAttention.batch_head_product(x, self.q)
+        v = SelfAttention.batch_head_product(x, self.v)
+
+        return SelfAttention.attention_operation(k, q, v)
